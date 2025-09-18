@@ -1,4 +1,4 @@
-package com.devprofiles.developer_profile_import;
+package com.devprofiles.developerprofileimport;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
