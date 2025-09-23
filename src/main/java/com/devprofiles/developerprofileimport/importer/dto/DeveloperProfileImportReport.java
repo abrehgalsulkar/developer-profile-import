@@ -14,6 +14,7 @@ public class DeveloperProfileImportReport {
     private int incompleteRows;
     private final List<RowIssueDetail> duplicateRowDetails = new ArrayList<>();
     private final List<RowIssueDetail> incompleteRowDetails = new ArrayList<>();
+    private final List<RowIssueDetail> warnings = new ArrayList<>();
 
     public int getTotalRows() {
         return totalRows;
@@ -62,4 +63,13 @@ public class DeveloperProfileImportReport {
     public void addIncompleteRowDetail(RowIssueDetail detail) {
         incompleteRowDetails.add(detail);
     }
+
+    public List<RowIssueDetail> getWarnings() {
+        return Collections.unmodifiableList(warnings);
+    }
+
+    public void addWarning(RowIssueDetail detail) {
+        warnings.add(detail);
+    }
 }
+
