@@ -38,7 +38,7 @@ public class DeveloperExcelImportService {
 
     private final PlatformTransactionManager txManager;
 
-    public DeveloperProfileImportReport importExcel(MultipartFile workbook, MultipartFile assetsZip, boolean dryRun)
+    public DeveloperProfileImportReport importExcel(MultipartFile workbook, MultipartFile assetsZip)
             throws IOException {
         DeveloperProfileImportReport report = new DeveloperProfileImportReport();
         ExcelImportPreview preview;
@@ -53,11 +53,14 @@ public class DeveloperExcelImportService {
 
         report.setTotalRows(preview.developers.size());
         int completed = 0;
+        int rowNumber = 0;
 
         for (DeveloperAggregate agg : preview.developers) {
+            rowNumber++;
+            int currentRowNumber = rowNumber;
             List<String> errors = validate(agg);
             if (!errors.isEmpty()) {
-                RowIssueDetail detail = new RowIssueDetail(0);
+                RowIssueDetail detail = new RowIssueDetail(currentRowNumber);
                 errors.forEach(detail::addMessage);
                 report.addIncompleteRowDetail(detail);
                 continue;
@@ -65,17 +68,17 @@ public class DeveloperExcelImportService {
             
             var dupMsg = dups.detectDuplicate(toRowShim(agg));
             if (dupMsg.isPresent()) {
-                RowIssueDetail detail = new RowIssueDetail(0).addMessage(dupMsg.get());
+                RowIssueDetail detail = new RowIssueDetail(currentRowNumber).addMessage(dupMsg.get());
                 report.addDuplicateRowDetail(detail);
                 continue;
             }
 
             try {
                 tx.execute(status -> {
-                    HdDeveloperProfile profile = mapProfile(agg, lookups, assets, report);
+                    HdDeveloperProfile profile = mapProfile(agg, lookups, assets, report, currentRowNumber);
                     HdDeveloperProfile saved = profileRepository.save(profile);
                     saveLanguages(agg, lookups, saved);
-                    saveExperiences(agg, lookups, assets, saved, report);
+                    saveExperiences(agg, lookups, assets, saved, report, currentRowNumber);
                     saveProjects(agg, lookups, saved);
                     saveEducations(agg, saved);
                     saveCertifications(agg, saved);
@@ -84,7 +87,7 @@ public class DeveloperExcelImportService {
                 });
                 completed++;
             } catch (RuntimeException ex) {
-                RowIssueDetail detail = new RowIssueDetail(0)
+                RowIssueDetail detail = new RowIssueDetail(currentRowNumber)
                         .addMessage("Failed to persist developer: " + ex.getMessage());
                 report.addIncompleteRowDetail(detail);
             }
@@ -114,7 +117,7 @@ public class DeveloperExcelImportService {
     }
 
     private HdDeveloperProfile mapProfile(DeveloperAggregate agg, ReferenceLookupService.Session lookups,
-            Map<String, byte[]> assets, DeveloperProfileImportReport report) {
+            Map<String, byte[]> assets, DeveloperProfileImportReport report, int rowNumber) {
         HdDeveloperProfile p = new HdDeveloperProfile();
         p.setFirstName(agg.firstName);
         p.setLastName(agg.lastName);
@@ -143,19 +146,19 @@ public class DeveloperExcelImportService {
         String base = "storage/developers/" + agg.developerKey + "/";
         if (StringUtils.hasText(agg.profilePictureFile)) {
             String rel = base + agg.profilePictureFile;
-            if (writeAsset(agg.profilePictureFile, assets, rel, 2 * 1024 * 1024, report)) {
+            if (writeAsset(agg.profilePictureFile, assets, rel, 2 * 1024 * 1024, report, rowNumber)) {
                 p.setProfilePictureUrl(rel);
             }
         }
         if (StringUtils.hasText(agg.introVideoFile)) {
             String rel = base + agg.introVideoFile;
-            if (writeAsset(agg.introVideoFile, assets, rel, 20 * 1024 * 1024, report)) {
+            if (writeAsset(agg.introVideoFile, assets, rel, 20 * 1024 * 1024, report, rowNumber)) {
                 p.setIntroductionVideoUrl(rel);
             }
         }
         if (StringUtils.hasText(agg.cvFile)) {
             String rel = base + agg.cvFile;
-            if (writeAsset(agg.cvFile, assets, rel, 2 * 1024 * 1024, report)) {
+            if (writeAsset(agg.cvFile, assets, rel, 2 * 1024 * 1024, report, rowNumber)) {
                 p.setResumeUrl(rel);
             }
         }
@@ -163,14 +166,14 @@ public class DeveloperExcelImportService {
     }
 
     private boolean writeAsset(String fileName, Map<String, byte[]> assets, String relativeTarget, long maxBytes,
-            DeveloperProfileImportReport report) {
+            DeveloperProfileImportReport report, int rowNumber) {
         byte[] content = assets.get(fileName);
         if (content == null) {
-            report.addWarning(new RowIssueDetail(0).addMessage("Missing asset in ZIP: " + fileName));
+            report.addWarning(new RowIssueDetail(rowNumber).addMessage("Missing asset in ZIP: " + fileName));
             return false;
         }
         if (content.length > maxBytes) {
-            report.addWarning(new RowIssueDetail(0).addMessage("Asset exceeds size limit: " + fileName));
+            report.addWarning(new RowIssueDetail(rowNumber).addMessage("Asset exceeds size limit: " + fileName));
             return false;
         }
         try {
@@ -180,7 +183,7 @@ public class DeveloperExcelImportService {
             return true;
         } catch (IOException ex) {
             report.addWarning(
-                    new RowIssueDetail(0).addMessage("Failed to write asset: " + fileName + ": " + ex.getMessage()));
+                    new RowIssueDetail(rowNumber).addMessage("Failed to write asset: " + fileName + ": " + ex.getMessage()));
             return false;
         }
     }
@@ -204,7 +207,7 @@ public class DeveloperExcelImportService {
     }
 
     private void saveExperiences(DeveloperAggregate agg, ReferenceLookupService.Session lookups,
-            Map<String, byte[]> assets, HdDeveloperProfile saved, DeveloperProfileImportReport report) {
+            Map<String, byte[]> assets, HdDeveloperProfile saved, DeveloperProfileImportReport report, int rowNumber) {
         String base = "storage/developers/" + agg.developerKey + "/";
         for (DeveloperAggregate.Experience eagg : agg.experiences) {
             HdDeveloperExperience e = new HdDeveloperExperience();
@@ -216,7 +219,7 @@ public class DeveloperExcelImportService {
             e.setEndDate(eagg.endDate);
             if (StringUtils.hasText(eagg.companyLogoFile)) {
                 String rel = base + eagg.companyLogoFile;
-                if (writeAsset(eagg.companyLogoFile, assets, rel, 2 * 1024 * 1024, report)) {
+                if (writeAsset(eagg.companyLogoFile, assets, rel, 2 * 1024 * 1024, report, rowNumber)) {
                     e.setCompanyLogo(rel);
                 }
             }
@@ -314,10 +317,6 @@ public class DeveloperExcelImportService {
         return row;
     }
 
-
-    public DeveloperProfileImportReport importExcel(MultipartFile workbook, MultipartFile assetsZip) throws IOException {
-        return importExcel(workbook, assetsZip, false);
-    }
 
 }
 
