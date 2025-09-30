@@ -5,6 +5,8 @@ public class DeveloperProfileImportRow {
     private String firstName;
     private String lastName;
     private String designation;
+    private String email;
+    private String phoneNumber;
 
     public String getFirstName() {
         return firstName;
@@ -28,5 +30,21 @@ public class DeveloperProfileImportRow {
 
     public void setDesignation(String designation) {
         this.designation = designation;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 }

@@ -80,6 +80,10 @@ public class HdDeveloperProfile {
     @Column(columnDefinition = "TEXT")
     private String temporaryAddress;
 
+    private String email;
+
+    private String phoneNumber;
+
 	private Boolean isActive;
 	
 	private Boolean isDeleted;
@@ -97,4 +101,3 @@ public class HdDeveloperProfile {
 	}
 
 }
-

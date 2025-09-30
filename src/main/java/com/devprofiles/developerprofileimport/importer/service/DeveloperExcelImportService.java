@@ -130,6 +130,8 @@ public class DeveloperExcelImportService {
         p.setIsVerified(agg.verifiedDeveloper);
         p.setPermanentAddress(agg.permanentAddress);
         p.setTemporaryAddress(agg.temporaryAddress);
+        p.setEmail(StringUtils.hasText(agg.developerKey) ? agg.developerKey.trim() : null);
+        p.setPhoneNumber(sanitizePhoneNumber(agg.phoneNumber));
         if (StringUtils.hasText(agg.designation)) {
             lookups.resolveDesignation(agg.designation).ifPresent(p::setDesignation);
         }
@@ -285,6 +287,13 @@ public class DeveloperExcelImportService {
         return list;
     }
 
+    private String sanitizePhoneNumber(String value) {
+        if (!StringUtils.hasText(value)) {
+            return null;
+        }
+        String digits = value.replaceAll("\\D", "");
+        return digits.isEmpty() ? null : digits;
+    }
     private List<String> validate(DeveloperAggregate agg) {
         List<String> errs = new ArrayList<>();
         if (!StringUtils.hasText(agg.firstName))
@@ -314,9 +323,9 @@ public class DeveloperExcelImportService {
         row.setFirstName(agg.firstName);
         row.setLastName(agg.lastName);
         row.setDesignation(agg.designation);
+        row.setEmail(agg.developerKey);
+        row.setPhoneNumber(agg.phoneNumber);
         return row;
     }
 
-
 }
-

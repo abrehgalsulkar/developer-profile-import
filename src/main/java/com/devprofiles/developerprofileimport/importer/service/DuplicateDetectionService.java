@@ -6,12 +6,15 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Pattern;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 @Component
 public class DuplicateDetectionService {
+
+    private static final Pattern NON_DIGIT = Pattern.compile("\\D");
 
     private final HdDeveloperProfileRepository developerProfileRepository;
 
@@ -24,49 +27,73 @@ public class DuplicateDetectionService {
     }
 
     public class Session {
-        private final Set<String> inFileKeys = new HashSet<>();
-        private final Set<String> knownExistingKeys = new HashSet<>();
-        private final Set<String> checkedKeys = new HashSet<>();
+        private final Set<String> inFileEmails = new HashSet<>();
+        private final Set<String> inFilePhones = new HashSet<>();
+        private final Set<String> knownExistingEmails = new HashSet<>();
+        private final Set<String> knownExistingPhones = new HashSet<>();
+        private final Set<String> checkedEmails = new HashSet<>();
+        private final Set<String> checkedPhones = new HashSet<>();
 
         @Transactional(readOnly = true)
         public Optional<String> detectDuplicate(DeveloperProfileImportRow row) {
-            String firstName = row.getFirstName();
-            String lastName = row.getLastName();
-            String designation = row.getDesignation();
-            if (!StringUtils.hasText(firstName) || !StringUtils.hasText(lastName)) {
+            String rawEmail = row.getEmail();
+            String rawPhone = row.getPhoneNumber();
+            String normalizedEmail = normalizeEmail(rawEmail);
+            String normalizedPhone = normalizePhone(rawPhone);
+
+            if (!StringUtils.hasText(normalizedEmail) && !StringUtils.hasText(normalizedPhone)) {
                 return Optional.empty();
             }
-            String key = buildKey(firstName, lastName, designation);
-            if (!inFileKeys.add(key)) {
-                return Optional.of("Duplicate row in import file for " + formatName(firstName, lastName, designation));
-            }
-            if (knownExistingKeys.contains(key)) {
-                return Optional.of("Developer already exists for " + formatName(firstName, lastName, designation));
-            }
-            if (checkedKeys.add(key)) {
-                boolean exists = developerProfileRepository.findExistingMatch(firstName, lastName, designation).isPresent();
-                if (exists) {
-                    knownExistingKeys.add(key);
-                    return Optional.of("Developer already exists for " + formatName(firstName, lastName, designation));
+
+            if (StringUtils.hasText(normalizedEmail)) {
+                if (!inFileEmails.add(normalizedEmail)) {
+                    return Optional.of("Duplicate email in import file: " + rawEmail);
+                }
+                if (knownExistingEmails.contains(normalizedEmail)) {
+                    return Optional.of("Developer already exists for email " + rawEmail);
+                }
+                if (checkedEmails.add(normalizedEmail)) {
+                    boolean exists = developerProfileRepository
+                            .findByEmailIgnoreCase(normalizedEmail)
+                            .isPresent();
+                    if (exists) {
+                        knownExistingEmails.add(normalizedEmail);
+                        return Optional.of("Developer already exists for email " + rawEmail);
+                    }
                 }
             }
+
+            if (StringUtils.hasText(normalizedPhone)) {
+                if (!inFilePhones.add(normalizedPhone)) {
+                    return Optional.of("Duplicate phone number in import file: " + rawPhone);
+                }
+                if (knownExistingPhones.contains(normalizedPhone)) {
+                    return Optional.of("Developer already exists for phone number " + rawPhone);
+                }
+                if (checkedPhones.add(normalizedPhone)) {
+                    boolean exists = developerProfileRepository
+                            .findByPhoneNumber(normalizedPhone)
+                            .isPresent();
+                    if (exists) {
+                        knownExistingPhones.add(normalizedPhone);
+                        return Optional.of("Developer already exists for phone number " + rawPhone);
+                    }
+                }
+            }
+
             return Optional.empty();
         }
 
-        private String buildKey(String firstName, String lastName, String designation) {
-            return normalize(firstName) + "|" + normalize(lastName) + "|" + normalize(designation);
+        private String normalizeEmail(String value) {
+            return StringUtils.hasText(value) ? value.trim().toLowerCase(Locale.ENGLISH) : null;
         }
 
-        private String normalize(String value) {
-            return StringUtils.hasText(value) ? value.trim().toLowerCase(Locale.ENGLISH) : "";
-        }
-
-        private String formatName(String firstName, String lastName, String designation) {
-            StringBuilder builder = new StringBuilder(firstName).append(' ').append(lastName);
-            if (StringUtils.hasText(designation)) {
-                builder.append(" (").append(designation.trim()).append(')');
+        private String normalizePhone(String value) {
+            if (!StringUtils.hasText(value)) {
+                return null;
             }
-            return builder.toString();
+            String digits = NON_DIGIT.matcher(value).replaceAll("");
+            return digits.isEmpty() ? null : digits;
         }
     }
 }

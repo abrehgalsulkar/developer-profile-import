@@ -21,4 +21,8 @@ public interface HdDeveloperProfileRepository extends JpaRepository<HdDeveloperP
     Optional<HdDeveloperProfile> findExistingMatch(@Param("firstName") String firstName,
                                                    @Param("lastName") String lastName,
                                                    @Param("designation") String designation);
+
+    Optional<HdDeveloperProfile> findByEmailIgnoreCase(String email);
+
+    Optional<HdDeveloperProfile> findByPhoneNumber(String phoneNumber);
 }
