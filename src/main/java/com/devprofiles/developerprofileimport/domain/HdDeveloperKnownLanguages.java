@@ -1,11 +1,19 @@
 package com.devprofiles.developerprofileimport.domain;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
+import java.util.Date;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-
-import java.util.Date;
 
 @Entity
 @Table(name = "hd_developer_known_languages")
@@ -24,6 +32,8 @@ public class HdDeveloperKnownLanguages {
     @JoinColumn(name = "hd_language_proficiency_id")
     private HdLanguageProficiency hdLanguageProficiency;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @ManyToOne
     @JoinColumn(name = "hd_developer_profile_id")
     private HdDeveloperProfile hdDeveloperProfile;
