@@ -3,12 +3,10 @@ package com.devprofiles.developerprofileimport.repository;
 import com.devprofiles.developerprofileimport.domain.HdDeveloperProfile;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface HdDeveloperProfileRepository extends JpaRepository<HdDeveloperProfile, Long>,
-        JpaSpecificationExecutor<HdDeveloperProfile> {
+public interface HdDeveloperProfileRepository extends JpaRepository<HdDeveloperProfile, Long> {
 
     @Query("""
         select p from HdDeveloperProfile p

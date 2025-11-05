@@ -1,6 +1,5 @@
 package com.devprofiles.developerprofileimport.domain;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -18,11 +17,8 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
 
 @Entity
 @Table(name = "hd_developer_profile")
@@ -87,11 +83,6 @@ public class HdDeveloperProfile {
     private String email;
 
     private String phoneNumber;
-
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    @OneToMany(mappedBy = "hdDeveloperProfile")
-    private List<HdDeveloperKnownLanguages> knownLanguages = new ArrayList<>();
 
 	private Boolean isActive;
 	
