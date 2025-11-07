@@ -16,6 +16,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.Data;
@@ -40,6 +41,9 @@ public class HdDeveloperProfile {
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "hd_developer_profile_hd_overall_technologies")
     private List<HdTechnologies> overallExperienceSkills;
+
+    @OneToMany(mappedBy = "hdDeveloperProfile", fetch = FetchType.LAZY)
+    private List<HdDeveloperKnownLanguages> knownLanguages;
 
     @ManyToOne
     @JoinColumn(name = "designation_id")
