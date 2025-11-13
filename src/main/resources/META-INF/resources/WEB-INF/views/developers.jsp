@@ -15,7 +15,7 @@
       <c:set var="sortOptionName" value="${filters.sortOption != null ? filters.sortOption.name() : 'DEFAULT'}" />
       <c:set var="sortDirectionName" value="${filters.sortDirection != null ? filters.sortDirection.name() : 'DESC'}" />
       <div class="row g-4">
-        <aside class="col-12 col-lg-4 col-xl-3">
+        <aside class="col-12 col-lg-4 col-xl-3 align-self-start">
           <div class="filter-panel shadow-soft bg-white p-4">
             <div class="d-flex align-items-center justify-content-between mb-4">
               <h2 class="h5 fw-semibold mb-0">Filters</h2>
@@ -195,7 +195,7 @@
               </section>
               <c:set var="minRateValue" value="${filters.minHourlyRate != null ? filters.minHourlyRate.intValue() : 15}" />
               <c:set var="maxRateValue" value="${filters.maxHourlyRate != null ? filters.maxHourlyRate.intValue() : 120}" />
-              <section class="filter-section">
+              <section class="filter-section rate-highlight">
                 <div class="d-flex justify-content-between mb-2">
                   <span class="fw-semibold small text-uppercase text-secondary">Hourly Rate</span>
                   <span class="small text-secondary">$<span id="rateMinValue">${minRateValue}</span> - $<span id="rateMaxValue">${maxRateValue}</span></span>
@@ -212,7 +212,7 @@
             </form>
           </div>
         </aside>
-        <div class="col-12 col-lg-8 col-xl-9">
+        <div class="col-12 col-lg-8 col-xl-9 align-self-start">
           <section class="directory-header mb-4">
             <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
               <div class="directory-headline">
@@ -223,7 +223,7 @@
                   </c:if>
                 </div>
               </div>
-              <div class="d-flex flex-wrap gap-2">
+              <div class="d-flex flex-wrap align-items-center gap-2">
                 <div class="sort-control">
                   <label class="visually-hidden" for="sortKeySelect">Sort field</label>
                   <select class="form-select" id="sortKeySelect" data-sort-key-select>
@@ -241,6 +241,12 @@
                     <option value="ASC"<c:if test="${sortDirectionName eq 'ASC'}"> selected</c:if>>Ascending</option>
                   </select>
                 </div>
+                <a class="btn btn-outline-secondary rounded-pill" href="<c:url value='/cart' />">
+                  View cart
+                  <c:if test="${cartCount > 0}">
+                    (<c:out value="${cartCount}" />)
+                  </c:if>
+                </a>
               </div>
             </div>
           </section>
@@ -258,9 +264,16 @@
               <div class="d-flex flex-column gap-4">
                 <c:set var="defaultAvatar" value="/developer-images/jane.png" />
                 <c:forEach var="developer" items="${developers}" varStatus="loop">
+                  <c:set var="inCart" value="${cartDeveloperIds != null and cartDeveloperIds.contains(developer.id)}" />
+                  <c:url var="addToCartUrl" value="/cart/add">
+                    <c:param name="developerId" value="${developer.id}" />
+                  </c:url>
+                  <c:url var="removeFromCartUrl" value="/cart/remove">
+                    <c:param name="developerId" value="${developer.id}" />
+                  </c:url>
                   <c:set var="primaryAvailability" value="${not empty developer.availabilities ? developer.availabilities[0].availabilityLabel : null}" />
                   <c:set var="displayTitle" value="${not empty developer.jobTitle ? developer.jobTitle : (not empty developer.designation ? developer.designation.designation : 'Experienced Developer')}" />
-                  <article class="card developer-card shadow-soft">
+                  <article class="card developer-card shadow-soft" data-profile-url="<c:url value='/developers/${developer.id}' />">
                     <div class="card-body">
                       <div class="card-heading">
                         <div class="d-flex align-items-center gap-3">
@@ -370,9 +383,15 @@
                       </c:if>
 
                       <div class="card-footer-actions">
-                        <button type="button" class="btn btn-outline-secondary btn-sm">See more</button>
                         <div class="d-flex gap-2">
-                          <button type="button" class="btn btn-primary btn-sm px-4">Hire Developer</button>
+                          <c:choose>
+                            <c:when test="${inCart}">
+                              <a class="btn btn-danger btn-sm px-4" href="${removeFromCartUrl}">Remove from cart</a>
+                            </c:when>
+                            <c:otherwise>
+                              <a class="btn btn-primary btn-sm px-4" href="${addToCartUrl}">Hire Developer</a>
+                            </c:otherwise>
+                          </c:choose>
                         </div>
                       </div>
                     </div>
@@ -575,26 +594,55 @@
         resetButton.addEventListener('click', function (e) {
           e.preventDefault();
 
-          if (searchInput) searchInput.value = '';
-          chipInputs.forEach(input => input.checked = false);
-          proficiencySelects.forEach(select => select.selectedIndex = 0);
+          if (searchInput) {
+            searchInput.value = '';
+          }
+          chipInputs.forEach(function (input) {
+            input.checked = false;
+          });
+          proficiencySelects.forEach(function (select) {
+            select.selectedIndex = 0;
+          });
 
-          if (rangeMin) rangeMin.value = rangeMin.getAttribute('data-default') || '15';
-          if (rangeMax) rangeMax.value = rangeMax.getAttribute('data-default') || '120';
+          if (rangeMin) {
+            rangeMin.value = rangeMin.getAttribute('data-default') || '15';
+          }
+          if (rangeMax) {
+            rangeMax.value = rangeMax.getAttribute('data-default') || '120';
+          }
           syncRangeValues();
 
-          if (sortKeySelect) sortKeySelect.value = 'DEFAULT';
-          if (sortDirectionSelect) sortDirectionSelect.value = 'DESC';
-
+          if (sortKeySelect) {
+            sortKeySelect.value = 'DEFAULT';
+          }
+          if (sortDirectionSelect) {
+            sortDirectionSelect.value = 'DESC';
+          }
           updateSortDirectionState();
 
           resetPage();
           scheduleSubmit({ delay: 0 });
         });
       }
+
+      const developerCards = Array.from(document.querySelectorAll('.developer-card[data-profile-url]'));
+      developerCards.forEach(function (card) {
+        card.style.cursor = 'pointer';
+        card.addEventListener('click', function (event) {
+          if (event.target.closest('button') || event.target.closest('a') || event.target.closest('input')) {
+            return;
+          }
+          const url = card.getAttribute('data-profile-url');
+          if (url) {
+            window.location.href = url;
+          }
+        });
+      });
+
       updateSortDirectionState();
 
     });
   </script>
 </body>
 </html>
+

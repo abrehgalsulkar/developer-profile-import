@@ -11,6 +11,7 @@ import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -55,10 +56,20 @@ public final class DeveloperProfileSpecifications {
           });
 
       if (!criteria.getTechnologies().isEmpty()) {
-        Join<HdDeveloperProfile, HdTechnologies> technologiesJoin =
-            root.join("overallExperienceSkills", JoinType.LEFT);
-    Expression<String> techName = cb.lower(technologiesJoin.get("technology"));
-    predicates.add(techName.in(lowerCase(criteria.getTechnologies())));
+        List<String> loweredTechnologies = lowerCase(criteria.getTechnologies());
+        for (String technology : loweredTechnologies) {
+          Subquery<Long> technologySubquery = query.subquery(Long.class);
+          Root<HdDeveloperProfile> subRoot = technologySubquery.from(HdDeveloperProfile.class);
+          Join<HdDeveloperProfile, HdTechnologies> subJoin =
+              subRoot.join("overallExperienceSkills", JoinType.LEFT);
+
+          technologySubquery.select(subRoot.get("id"))
+              .where(
+                  cb.equal(subRoot.get("id"), root.get("id")),
+                  cb.equal(cb.lower(subJoin.get("technology")), technology)
+              );
+          predicates.add(cb.exists(technologySubquery));
+        }
       }
 
       if (!criteria.getAvailabilities().isEmpty()) {

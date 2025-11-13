@@ -32,6 +32,18 @@ public class DeveloperDirectoryService {
     return developerProfileRepository.findAll(specification, pageable);
   }
 
+  public HdDeveloperProfile findProfileById(Long id) {
+    return developerProfileRepository.findById(id)
+        .orElseThrow(() -> new IllegalArgumentException("Developer not found"));
+  }
+
+  public java.util.List<HdDeveloperProfile> findProfilesByIds(java.util.Set<Long> ids) {
+    if (ids == null || ids.isEmpty()) {
+      return java.util.List.of();
+    }
+    return developerProfileRepository.findAllById(ids);
+  }
+
   private Sort resolveSort(DeveloperFilterCriteria criteria) {
     Sort.Direction direction = criteria.getSortDirection();
     DeveloperSortOption sortOption = criteria.getSortOption();
