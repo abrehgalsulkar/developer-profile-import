@@ -54,6 +54,11 @@
     font-weight: 500;
   }
 
+  .badge-verified svg {
+    width: 14px;
+    height: 14px;
+  }
+
   .developer-card {
     border: none;
     border-radius: 24px;
@@ -67,6 +72,18 @@
     padding: 1.75rem;
     position: relative;
     z-index: 1;
+  }
+
+  .developer-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  @media (min-width: 768px) {
+    .developer-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
   }
   .profile-avatar {
     width: 80px;

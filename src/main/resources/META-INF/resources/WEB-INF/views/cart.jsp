@@ -44,7 +44,7 @@
                 <c:url var="removeUrl" value="/cart/remove">
                   <c:param name="developerId" value="${developer.id}" />
                 </c:url>
-                <article class="card developer-card shadow-soft mb-3" data-profile-url="${detailUrl}">
+                <article class="card developer-card shadow-soft mb-3 position-relative" data-profile-url="${detailUrl}" style="cursor: pointer;">
                   <div class="card-body">
                     <div class="card-heading">
                       <div class="d-flex align-items-center gap-3">
@@ -55,10 +55,20 @@
                         />
                         <div>
                           <h2 class="h5 fw-semibold mb-1">
-                            <c:out value="${developer.firstName}" /> <c:out value="${developer.lastName}" />
+                            <a href="${detailUrl}"
+                               target="_blank"
+                               rel="noopener"
+                               class="text-decoration-none text-dark js-open-detail">
+                              <c:out value="${developer.firstName}" /> <c:out value="${developer.lastName}" />
+                            </a>
                           </h2>
                           <p class="mb-0 text-secondary small fw-medium">
-                            <c:out value="${not empty developer.jobTitle ? developer.jobTitle : (not empty developer.designation ? developer.designation.designation : 'Experienced Developer')}" />
+                            <a href="${detailUrl}"
+                               target="_blank"
+                               rel="noopener"
+                               class="text-secondary text-decoration-none js-open-detail">
+                              <c:out value="${not empty developer.jobTitle ? developer.jobTitle : (not empty developer.designation ? developer.designation.designation : 'Experienced Developer')}" />
+                            </a>
                           </p>
                         </div>
                       </div>
@@ -72,7 +82,12 @@
                           </c:choose>
                           <span class="text-secondary fs-6 fw-normal">/hr</span>
                         </div>
-                        <a class="btn btn-danger btn-sm px-3" href="${removeUrl}">Remove</a>
+                        <a class="btn btn-danger btn-sm px-3 js-remove-from-cart position-relative"
+                           style="z-index: 2;"
+                           href="${removeUrl}"
+                           data-developer-name="${developer.firstName} ${developer.lastName}">
+                          Remove
+                        </a>
                       </div>
                     </div>
                   </div>
@@ -99,5 +114,35 @@
       </c:choose>
     </div>
   </main>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const removeLinks = document.querySelectorAll('.js-remove-from-cart');
+      removeLinks.forEach(function (link) {
+        link.addEventListener('click', function (event) {
+          const name = link.getAttribute('data-developer-name') || 'this developer';
+          const confirmed = window.confirm('Remove ' + name + ' from your cart?');
+          if (!confirmed) {
+            event.preventDefault();
+          }
+        });
+      });
+
+      const developerCards = document.querySelectorAll('.developer-card[data-profile-url]');
+      developerCards.forEach(function (card) {
+        card.addEventListener('click', function (event) {
+          if (event.target.closest('.js-remove-from-cart')
+              || event.target.closest('button')
+              || event.target.closest('a')
+              || event.target.closest('input')) {
+            return;
+          }
+          const url = card.getAttribute('data-profile-url');
+          if (url) {
+            window.open(url, '_blank', 'noopener');
+          }
+        });
+      });
+    });
+  </script>
 </body>
 </html>

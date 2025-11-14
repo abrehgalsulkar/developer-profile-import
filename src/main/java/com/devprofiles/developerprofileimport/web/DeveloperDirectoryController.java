@@ -3,6 +3,7 @@ package com.devprofiles.developerprofileimport.web;
 import com.devprofiles.developerprofileimport.domain.HdDeveloperProfile;
 import com.devprofiles.developerprofileimport.service.CartService;
 import com.devprofiles.developerprofileimport.service.DeveloperDirectoryService;
+import com.devprofiles.developerprofileimport.service.FilterOptionService;
 import com.devprofiles.developerprofileimport.service.dto.DeveloperFilterCriteria;
 import com.devprofiles.developerprofileimport.service.dto.DeveloperSortOption;
 import org.slf4j.Logger;
@@ -26,11 +27,14 @@ public class DeveloperDirectoryController {
 
   private final DeveloperDirectoryService developerDirectoryService;
   private final CartService cartService;
+  private final FilterOptionService filterOptionService;
 
   public DeveloperDirectoryController(DeveloperDirectoryService developerDirectoryService,
-                                      CartService cartService) {
+                                      CartService cartService,
+                                      FilterOptionService filterOptionService) {
     this.developerDirectoryService = developerDirectoryService;
     this.cartService = cartService;
+    this.filterOptionService = filterOptionService;
   }
 
   @GetMapping("/developers")
@@ -68,11 +72,19 @@ public class DeveloperDirectoryController {
 
     Page<HdDeveloperProfile> results = developerDirectoryService.findProfiles(filters);
     var cartIds = cartService.getSnapshot(session);
+    var filterOptions = filterOptionService.loadFilterOptions();
     model.addAttribute("developersPage", results);
     model.addAttribute("developers", results.getContent());
     model.addAttribute("developerCount", results.getTotalElements());
     model.addAttribute("cartDeveloperIds", cartIds);
     model.addAttribute("cartCount", cartIds.size());
+    model.addAttribute("filterTechnologies", filterOptions.technologies());
+    model.addAttribute("filterExperienceRanges", filterOptions.experienceRanges());
+    model.addAttribute("filterProjectCompletions", filterOptions.projectCompletions());
+    model.addAttribute("filterWorkLocations", filterOptions.workLocations());
+    model.addAttribute("filterAvailabilities", filterOptions.availabilities());
+    model.addAttribute("filterLanguages", filterOptions.languages());
+    model.addAttribute("filterLanguageProficiencies", filterOptions.languageProficiencies());
     return "developers";
   }
 
