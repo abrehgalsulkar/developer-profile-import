@@ -186,10 +186,27 @@
     padding: 1rem;
   }
 
-  .rate-highlight .range-slider {
-    background: linear-gradient(90deg, rgba(99, 102, 241, 0.2), rgba(14, 165, 233, 0.2));
-    border-radius: 999px;
-    padding: 0.85rem 0.5rem;
+  .rate-highlight .range-slider-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .range-control {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.85rem;
+  }
+
+  .range-control label {
+    font-weight: 600;
+    color: #475569;
+  }
+
+  .range-control input[type="range"] {
+    accent-color: #4338ca;
+    margin: 0.35rem 0;
   }
 
   .rate-highlight .range-display span {
@@ -332,47 +349,6 @@
     background-color: transparent;
     border: 0;
     color: #94a3b8;
-  }
-
-  .range-slider {
-    position: relative;
-    padding: 0.5rem 0;
-  }
-
-  .range-slider input[type="range"] {
-    position: absolute;
-    width: 100%;
-    pointer-events: none;
-    -webkit-appearance: none;
-    background: none;
-  }
-
-  .range-slider input[type="range"]::-webkit-slider-thumb {
-    pointer-events: all;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background-color: #4338ca;
-    border: 3px solid #ffffff;
-    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.2);
-    -webkit-appearance: none;
-  }
-
-  .range-slider input[type="range"]::-moz-range-thumb {
-    pointer-events: all;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background-color: #4338ca;
-    border: 3px solid #ffffff;
-    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.2);
-  }
-
-  .range-slider input[type="range"]::-webkit-slider-runnable-track,
-  .range-slider input[type="range"]::-moz-range-track {
-    height: 6px;
-    border-radius: 999px;
-    background-color: rgba(15, 23, 42, 0.08);
   }
 
   .range-display {

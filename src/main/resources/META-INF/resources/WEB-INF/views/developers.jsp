@@ -199,9 +199,15 @@
                   <span class="fw-semibold small text-uppercase text-secondary">Hourly Rate</span>
                   <span class="small text-secondary">$<span id="rateMinValue">${minRateValue}</span> - $<span id="rateMaxValue">${maxRateValue}</span></span>
                 </div>
-                <div class="range-slider" data-range>
-                  <input type="range" id="rateMin" name="minHourlyRate" min="1" max="150" value="${minRateValue}" data-default="15">
-                  <input type="range" id="rateMax" name="maxHourlyRate" min="1" max="150" value="${maxRateValue}" data-default="120">
+                <div class="range-slider-group">
+                  <div class="range-control">
+                    <label class="small fw-semibold text-secondary mb-1" for="rateMin">Min hourly rate</label>
+                    <input type="range" id="rateMin" name="minHourlyRate" min="1" max="150" value="${minRateValue}" data-default="15">
+                  </div>
+                  <div class="range-control">
+                    <label class="small fw-semibold text-secondary mb-1" for="rateMax">Max hourly rate</label>
+                    <input type="range" id="rateMax" name="maxHourlyRate" min="1" max="150" value="${maxRateValue}" data-default="120">
+                  </div>
                 </div>
                 <div class="range-display">
                   <span>Min: $<span id="rateMinLabel">${minRateValue}</span></span>
@@ -416,6 +422,7 @@
       </div>
     </div>
   </main>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       const filterForm = document.getElementById('filterForm');

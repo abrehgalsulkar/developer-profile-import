@@ -114,16 +114,29 @@
       </c:choose>
     </div>
   </main>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       const removeLinks = document.querySelectorAll('.js-remove-from-cart');
       removeLinks.forEach(function (link) {
         link.addEventListener('click', function (event) {
+          event.preventDefault();
           const name = link.getAttribute('data-developer-name') || 'this developer';
-          const confirmed = window.confirm('Remove ' + name + ' from your cart?');
-          if (!confirmed) {
-            event.preventDefault();
-          }
+          const removeUrl = link.getAttribute('href');
+          Swal.fire({
+            title: 'Remove developer?',
+            text: 'Remove ' + name + ' from your cart?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Yes, remove',
+            cancelButtonText: 'Keep'
+          }).then(function (result) {
+            if (result.isConfirmed && removeUrl) {
+              window.location.href = removeUrl;
+            }
+          });
         });
       });
 
